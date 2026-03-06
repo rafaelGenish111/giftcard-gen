@@ -23,7 +23,11 @@
       "Bash(npm install)",
       "Bash(npm init vite@latest temp-vite -- --template vanilla)",
       "Bash(npm run build)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(npx vercel --prod --yes)",
+      "Bash(npx vercel env ls --yes)",
+      "Bash(npx vercel env ls)",
+      "Bash(npx vercel inspect giftcard-mjd80zcrf-rafaelgenish111s-projects.vercel.app --logs)"
     ]
   }
 }
