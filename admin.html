@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#b8967a">
+  <title>ניהול כרטיסים - Leah Genish</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>ניהול כרטיסי מתנה</h1>
+      <a href="/" class="btn-new">+ כרטיס חדש</a>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <main>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">הכל</button>
+      <button class="filter-btn" data-filter="paid">שולם</button>
+      <button class="filter-btn" data-filter="unpaid">לא שולם</button>
+      <button class="filter-btn" data-filter="expired">פג תוקף</button>
+    </div>
+
+    <div id="cards-list" class="cards-list">
+      <div class="loading">טוען...</div>
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display:none">
+      <p>אין כרטיסים להצגה</p>
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

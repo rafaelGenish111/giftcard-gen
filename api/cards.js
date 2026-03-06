@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
 
   // GET - list all cards
   if (req.method === 'GET') {
-    const cards = await collection.find({}).sort({ createdAt: -1 }).toArray();
+    const cards = await collection.find({ deleted: { $ne: true } }).sort({ createdAt: -1 }).toArray();
     return res.status(200).json(cards);
   }
 
