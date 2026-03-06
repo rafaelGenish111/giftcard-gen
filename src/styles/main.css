@@ -1060,3 +1060,120 @@ html, body {
   background: #25D366 !important;
   color: #fff !important;
 }
+
+/* ===================== */
+/* Settings Page         */
+/* ===================== */
+.settings-screen {
+  padding-bottom: 80px;
+}
+
+.settings-header {
+  background: var(--white);
+  padding: calc(var(--safe-top) + 16px) 20px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.settings-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  text-align: center;
+}
+
+.settings-main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 20px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.settings-tab {
+  padding: 8px 16px;
+  border: 1.5px solid var(--primary-light);
+  border-radius: 20px;
+  background: var(--white);
+  font-family: 'Assistant', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--white);
+}
+
+.settings-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  margin-bottom: 12px;
+}
+
+.settings-card h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.settings-hint {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.settings-hint code {
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--primary-dark);
+}
+
+.settings-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--primary-light);
+  border-radius: 10px;
+  font-family: 'Assistant', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.settings-textarea:focus {
+  border-color: var(--primary);
+}
+
+.settings-preview {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Assistant', sans-serif;
+  font-size: 13px;
+  color: var(--text-light);
+  background: var(--bg);
+  padding: 12px;
+  border-radius: 8px;
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.preview-card {
+  border: 1px dashed var(--primary-light);
+}

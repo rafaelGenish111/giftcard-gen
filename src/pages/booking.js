@@ -1,15 +1,15 @@
 import { renderNav } from '../lib/nav.js';
 import { getClients } from '../lib/api.js';
 import { escapeHtml, formatPhone, TREATMENT_TYPES } from '../lib/ui.js';
+import { buildWhatsAppMessage } from '../lib/settings.js';
 
-// Duration map for calendar events (in minutes)
 const DURATION_MAP = {
   '60 דקות': 60,
   '90 דקות': 90,
   '120 דקות': 120,
 };
 
-function buildGoogleCalendarUrl({ title, date, time, durationMin, description, location }) {
+function buildGoogleCalendarUrl({ title, date, time, durationMin, description }) {
   const start = new Date(`${date}T${time}:00`);
   const end = new Date(start.getTime() + durationMin * 60000);
   const fmt = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
@@ -18,9 +18,33 @@ function buildGoogleCalendarUrl({ title, date, time, durationMin, description, l
     text: title,
     dates: `${fmt(start)}/${fmt(end)}`,
     details: description || '',
-    location: location || '',
   });
   return `https://calendar.google.com/calendar/render?${params}`;
+}
+
+function fmtGcal(d) {
+  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+}
+
+async function createShortLink({ title, date, time, durationMin, description }) {
+  const start = new Date(`${date}T${time}:00`);
+  const end = new Date(start.getTime() + durationMin * 60000);
+  try {
+    const res = await fetch('/api/gcal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        start: fmtGcal(start),
+        end: fmtGcal(end),
+        description: description || '',
+      }),
+    });
+    const data = await res.json();
+    return `${window.location.origin}${data.url}`;
+  } catch {
+    return null;
+  }
 }
 
 export function renderBooking(app, params) {
@@ -58,7 +82,7 @@ export function renderBooking(app, params) {
         </div>
         <div class="form-group">
           <label>הודעה ללקוח/ה</label>
-          <textarea id="book-message" rows="4" readonly></textarea>
+          <textarea id="book-message" rows="6"></textarea>
         </div>
 
         <div class="booking-buttons">
@@ -77,13 +101,13 @@ export function renderBooking(app, params) {
     </div>
   `;
 
-  // Set default date to tomorrow
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   document.getElementById('book-date').value = tomorrow.toISOString().split('T')[0];
 
   let allClients = [];
   let selectedClient = null;
+  let shortLink = null;
 
   getClients().then(clients => {
     allClients = clients;
@@ -116,31 +140,37 @@ export function renderBooking(app, params) {
     return { type, date, time, durationMin, tt };
   }
 
-  function updateMessage() {
-    const { type, date, time } = getFormData();
+  async function updateMessage() {
+    const { type, date, time, durationMin } = getFormData();
     const name = selectedClient ? selectedClient.name : '';
     const gcalBtn = document.getElementById('btn-gcal');
 
     if (!name || !date || !time) {
       document.getElementById('book-message').value = '';
       gcalBtn.disabled = true;
+      shortLink = null;
       return;
     }
 
     gcalBtn.disabled = false;
-
     const dateStr = new Date(date).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
 
-    // Build Google Calendar link for client to add to their calendar
-    const { durationMin } = getFormData();
-    const gcalClientUrl = buildGoogleCalendarUrl({
+    // Show message with placeholder while creating short link
+    document.getElementById('book-message').value = buildWhatsAppMessage({
+      name, type, date: dateStr, time, link: '(יוצר קישור...)',
+    });
+
+    // Create short link
+    shortLink = await createShortLink({
       title: `טיפול - ${type} | לאה גניש`,
       date, time, durationMin,
       description: `${type} אצל לאה גניש - מטפלת הוליסטית`,
     });
 
-    const msg = `שלום ${name} 👋\nנקבע לך תור ל${type} ביום ${dateStr} בשעה ${time}.\n\nלהוספה ליומן:\n${gcalClientUrl}\n\nמחכה לך! 🙏\nלאה גניש - מטפלת הוליסטית`;
-    document.getElementById('book-message').value = msg;
+    document.getElementById('book-message').value = buildWhatsAppMessage({
+      name, type, date: dateStr, time,
+      link: shortLink || '(שגיאה ביצירת קישור)',
+    });
   }
 
   // Event handlers
@@ -179,11 +209,13 @@ export function renderBooking(app, params) {
 
     if (e.target.closest('#clear-client')) {
       selectedClient = null;
+      shortLink = null;
       document.getElementById('book-client-id').value = '';
       document.getElementById('selected-client').style.display = 'none';
       searchInput.style.display = 'block';
       searchInput.value = '';
-      updateMessage();
+      document.getElementById('book-message').value = '';
+      document.getElementById('btn-gcal').disabled = true;
       return;
     }
 
