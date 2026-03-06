@@ -155,16 +155,38 @@ function drawCard(data) {
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
+  const recipientPhone = document.getElementById('recipientPhone').value.trim();
+  const validUntilRaw = document.getElementById('validUntil').value;
+
   const data = {
     recipient: document.getElementById('recipientName').value.trim(),
     duration: document.getElementById('treatmentDuration').value,
-    validDate: formatDate(document.getElementById('validUntil').value),
+    validDate: formatDate(validUntilRaw),
     blessing: document.getElementById('blessing').value.trim(),
-    phone: document.getElementById('recipientPhone').value.trim(),
+    phone: recipientPhone,
   };
 
   // Store phone for WhatsApp send
   currentPhone = data.phone;
+
+  // Save to backend
+  try {
+    await fetch('/api/cards', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        recipient: data.recipient,
+        recipientPhone,
+        duration: data.duration,
+        validUntil: validUntilRaw,
+        blessing: data.blessing,
+        buyerName: document.getElementById('buyerName').value.trim(),
+        isPaid: document.getElementById('isPaid').checked,
+      }),
+    });
+  } catch (err) {
+    console.warn('Failed to save card:', err);
+  }
 
   await drawCard(data);
   showScreen(previewScreen);

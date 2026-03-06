@@ -1,0 +1,7 @@
+{
+  "name": "giftcard-gen",
+  "private": true,
+  "dependencies": {
+    "mongodb": "^6.12.0"
+  }
+}
