@@ -11,15 +11,17 @@ module.exports = async function handler(req, res) {
   const db = await getDb();
   const collection = db.collection('cards');
 
-  // GET - list all cards
+  // GET - list all cards (optional ?clientId= filter)
   if (req.method === 'GET') {
-    const cards = await collection.find({ deleted: { $ne: true } }).sort({ createdAt: -1 }).toArray();
+    const filter = { deleted: { $ne: true } };
+    if (req.query.clientId) filter.clientId = req.query.clientId;
+    const cards = await collection.find(filter).sort({ createdAt: -1 }).toArray();
     return res.status(200).json(cards);
   }
 
   // POST - create new card
   if (req.method === 'POST') {
-    const { recipient, recipientPhone, duration, validUntil, blessing, buyerName, isPaid } = req.body;
+    const { recipient, recipientPhone, duration, validUntil, blessing, buyerName, isPaid, clientId } = req.body;
 
     const card = {
       recipient,
@@ -31,6 +33,7 @@ module.exports = async function handler(req, res) {
       isPaid: !!isPaid,
       createdAt: new Date(),
     };
+    if (clientId) card.clientId = clientId;
 
     const result = await collection.insertOne(card);
     return res.status(201).json({ ...card, _id: result.insertedId });

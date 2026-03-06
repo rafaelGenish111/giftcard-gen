@@ -1,9 +1,13 @@
 import { navigate } from '../lib/router.js';
-import { createCard } from '../lib/api.js';
+import { createCard, getClients, getClient } from '../lib/api.js';
 import { drawCard } from '../lib/card-renderer.js';
+import { renderNav } from '../lib/nav.js';
+import { escapeHtml } from '../lib/ui.js';
 
 export function renderForm(app) {
-  // Set default date 3 months out
+  const urlParams = new URLSearchParams(window.location.search);
+  const preselectedClientId = urlParams.get('client');
+
   const defaultDate = new Date();
   defaultDate.setMonth(defaultDate.getMonth() + 3);
   const defaultDateStr = defaultDate.toISOString().split('T')[0];
@@ -24,6 +28,14 @@ export function renderForm(app) {
       </div>
 
       <form id="gift-form">
+        <div class="form-group">
+          <label>קישור ללקוח/ה (אופציונלי)</label>
+          <input type="text" id="link-client-search" placeholder="חיפוש לפי שם..." autocomplete="off" />
+          <div id="link-dropdown" class="client-dropdown" style="display:none"></div>
+          <input type="hidden" id="link-client-id" />
+          <div id="link-selected" class="selected-client" style="display:none"></div>
+        </div>
+
         <div class="form-group">
           <label for="recipientName">שם מקבל/ת המתנה (עבור)</label>
           <input type="text" id="recipientName" placeholder="לדוגמה: דנה כהן" required>
@@ -71,8 +83,73 @@ export function renderForm(app) {
 
         <button type="submit" class="btn-generate">צור כרטיס מתנה</button>
       </form>
+
+      ${renderNav('giftcard')}
     </div>
   `;
+
+  let allClients = [];
+  let selectedClient = null;
+
+  // Load clients for linking
+  getClients().then(clients => {
+    allClients = clients;
+    if (preselectedClientId) {
+      const c = clients.find(c => c._id === preselectedClientId);
+      if (c) selectLinkedClient(c);
+    }
+  });
+
+  function selectLinkedClient(c) {
+    selectedClient = c;
+    document.getElementById('link-client-id').value = c._id;
+    document.getElementById('link-client-search').style.display = 'none';
+    document.getElementById('link-dropdown').style.display = 'none';
+    const selEl = document.getElementById('link-selected');
+    selEl.style.display = 'flex';
+    selEl.innerHTML = `
+      <span>${escapeHtml(c.name)}</span>
+      <button type="button" id="clear-link" class="btn-action btn-delete" style="padding:4px 10px;font-size:12px">×</button>
+    `;
+    // Auto-fill name and phone
+    document.getElementById('recipientName').value = c.name || '';
+    document.getElementById('recipientPhone').value = c.phone || '';
+  }
+
+  const searchInput = document.getElementById('link-client-search');
+  let debounce;
+  const handleSearch = () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      const q = searchInput.value.trim();
+      const dropdown = document.getElementById('link-dropdown');
+      if (!q) { dropdown.style.display = 'none'; return; }
+      const filtered = allClients.filter(c => c.name.includes(q) || (c.phone && c.phone.includes(q)));
+      if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+      dropdown.style.display = 'block';
+      dropdown.innerHTML = filtered.slice(0, 5).map(c => `
+        <div class="dropdown-item" data-cid="${c._id}">${escapeHtml(c.name)} - ${escapeHtml(c.phone || '')}</div>
+      `).join('');
+    }, 200);
+  };
+  searchInput.addEventListener('input', handleSearch);
+
+  const handleClick = (e) => {
+    const item = e.target.closest('.dropdown-item');
+    if (item) {
+      const c = allClients.find(c => c._id === item.dataset.cid);
+      if (c) selectLinkedClient(c);
+      return;
+    }
+    if (e.target.closest('#clear-link')) {
+      selectedClient = null;
+      document.getElementById('link-client-id').value = '';
+      document.getElementById('link-selected').style.display = 'none';
+      searchInput.style.display = 'block';
+      searchInput.value = '';
+    }
+  };
+  app.addEventListener('click', handleClick);
 
   const form = document.getElementById('gift-form');
 
@@ -90,15 +167,14 @@ export function renderForm(app) {
     const blessing = document.getElementById('blessing').value.trim();
     const buyerName = document.getElementById('buyerName').value.trim();
     const isPaid = document.getElementById('isPaid').checked;
+    const clientId = document.getElementById('link-client-id').value || null;
 
-    // Save to backend
     try {
-      await createCard({ recipient, recipientPhone, duration, validUntil: validUntilRaw, blessing, buyerName, isPaid });
+      await createCard({ recipient, recipientPhone, duration, validUntil: validUntilRaw, blessing, buyerName, isPaid, clientId });
     } catch (err) {
       console.warn('Failed to save card:', err);
     }
 
-    // Store data for preview page
     window.__cardData = {
       recipient,
       duration,
@@ -111,5 +187,9 @@ export function renderForm(app) {
   };
 
   form.addEventListener('submit', handleSubmit);
-  return () => form.removeEventListener('submit', handleSubmit);
+  return () => {
+    form.removeEventListener('submit', handleSubmit);
+    searchInput.removeEventListener('input', handleSearch);
+    app.removeEventListener('click', handleClick);
+  };
 }

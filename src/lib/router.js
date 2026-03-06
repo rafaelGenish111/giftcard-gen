@@ -1,8 +1,22 @@
-const routes = {};
+const routes = [];
 let currentCleanup = null;
+let fallbackHandler = null;
 
 export function route(path, handler) {
-  routes[path] = handler;
+  if (path === '*') {
+    fallbackHandler = handler;
+    return;
+  }
+
+  // Convert /clients/:id to regex with named params
+  const paramNames = [];
+  const pattern = path.replace(/:([^/]+)/g, (_, name) => {
+    paramNames.push(name);
+    return '([^/]+)';
+  });
+  const regex = new RegExp(`^${pattern}$`);
+
+  routes.push({ regex, paramNames, handler });
 }
 
 export function navigate(path) {
@@ -14,23 +28,30 @@ function handleRoute() {
   const path = window.location.pathname;
   const app = document.getElementById('app');
 
-  // Cleanup previous page
   if (currentCleanup) {
     currentCleanup();
     currentCleanup = null;
   }
 
-  // Find matching route
-  const handler = routes[path] || routes['*'];
-  if (handler) {
-    currentCleanup = handler(app) || null;
+  for (const r of routes) {
+    const match = path.match(r.regex);
+    if (match) {
+      const params = {};
+      r.paramNames.forEach((name, i) => {
+        params[name] = match[i + 1];
+      });
+      currentCleanup = r.handler(app, params) || null;
+      return;
+    }
+  }
+
+  if (fallbackHandler) {
+    currentCleanup = fallbackHandler(app, {}) || null;
   }
 }
 
-// Handle browser back/forward
 window.addEventListener('popstate', handleRoute);
 
-// Handle link clicks with data-link attribute
 document.addEventListener('click', (e) => {
   const link = e.target.closest('[data-link]');
   if (link) {
