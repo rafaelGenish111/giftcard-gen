@@ -86,6 +86,9 @@ export function renderBooking(app, params) {
         </div>
 
         <div class="booking-buttons">
+          <button type="button" id="btn-save-appt" class="btn-generate btn-save" disabled>
+            שמור תור
+          </button>
           <button type="button" id="btn-gcal" class="btn-generate btn-gcal" disabled>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:6px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             הוסף ליומן שלי
@@ -95,6 +98,7 @@ export function renderBooking(app, params) {
             שלח WhatsApp ללקוח/ה
           </button>
         </div>
+        <div id="save-status" class="save-status" style="display:none"></div>
       </form>
 
       ${renderNav('book')}
@@ -146,14 +150,18 @@ export function renderBooking(app, params) {
     const name = selectedClient ? selectedClient.name : '';
     const gcalBtn = document.getElementById('btn-gcal');
 
+    const saveBtn = document.getElementById('btn-save-appt');
+
     if (!name || !date || !time) {
       document.getElementById('book-message').value = '';
       gcalBtn.disabled = true;
+      saveBtn.disabled = true;
       shortLink = null;
       return;
     }
 
     gcalBtn.disabled = false;
+    saveBtn.disabled = false;
     const dateStr = new Date(date).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
 
     // Show message with placeholder while creating short link
@@ -218,6 +226,24 @@ export function renderBooking(app, params) {
       searchInput.value = '';
       document.getElementById('book-message').value = '';
       document.getElementById('btn-gcal').disabled = true;
+      document.getElementById('btn-save-appt').disabled = true;
+      document.getElementById('save-status').style.display = 'none';
+      return;
+    }
+
+    // Save appointment button
+    if (e.target.closest('#btn-save-appt')) {
+      if (!selectedClient) return;
+      const { date, time } = getFormData();
+      if (!date || !time) return alert('נא למלא תאריך ושעה');
+      await saveAppointment();
+      if (appointmentSaved) {
+        const statusEl = document.getElementById('save-status');
+        statusEl.textContent = 'התור נשמר בהצלחה!';
+        statusEl.style.display = 'block';
+        document.getElementById('btn-save-appt').textContent = 'נשמר ✓';
+        document.getElementById('btn-save-appt').disabled = true;
+      }
       return;
     }
 

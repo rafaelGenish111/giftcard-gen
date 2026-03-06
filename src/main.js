@@ -9,6 +9,7 @@ import { renderPreview } from './pages/preview.js';
 import { renderAdmin } from './pages/admin.js';
 import { renderBooking } from './pages/booking.js';
 import { renderSettings } from './pages/settings.js';
+import { renderAppointments } from './pages/appointments.js';
 
 // Register service worker
 if ('serviceWorker' in navigator) {
@@ -25,6 +26,7 @@ route('/gift-card', renderForm);
 route('/preview', renderPreview);
 route('/admin', renderAdmin);
 route('/book', renderBooking);
+route('/appointments', renderAppointments);
 route('/settings', renderSettings);
 route('*', renderDashboard);
 

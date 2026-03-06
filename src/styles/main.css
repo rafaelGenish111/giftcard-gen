@@ -1177,3 +1177,175 @@ html, body {
 .preview-card {
   border: 1px dashed var(--primary-light);
 }
+
+/* ===================== */
+/* Save button           */
+/* ===================== */
+.btn-save {
+  background: var(--primary) !important;
+  color: var(--white) !important;
+}
+
+.btn-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.save-status {
+  text-align: center;
+  padding: 10px;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ===================== */
+/* Dashboard appointments*/
+/* ===================== */
+.dash-see-all {
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.dash-appt-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 6px;
+  border-right: 3px solid var(--primary-light);
+}
+
+.dash-appt-item.today {
+  border-right-color: var(--primary);
+  background: #fdf8f4;
+}
+
+.dash-appt-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+}
+
+.dash-appt-hour {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.dash-appt-date {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.dash-appt-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-appt-client {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dash-appt-type {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* ===================== */
+/* Appointments Page     */
+/* ===================== */
+.appt-screen {
+  padding-bottom: 80px;
+}
+
+.appt-header {
+  background: var(--white);
+  padding: calc(var(--safe-top) + 16px) 20px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.appt-main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 20px;
+}
+
+.appt-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.appt-date-group {
+  margin-bottom: 16px;
+}
+
+.appt-date-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  padding: 8px 0 6px;
+  border-bottom: 1px solid var(--primary-light);
+  margin-bottom: 8px;
+}
+
+.appt-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  margin-bottom: 6px;
+}
+
+.appt-item.cancelled {
+  opacity: 0.5;
+}
+
+.appt-time {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  min-width: 50px;
+  text-align: center;
+}
+
+.appt-details {
+  flex: 1;
+}
+
+.appt-client {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.appt-type {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.appt-actions-col {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.appt-cancelled-badge {
+  font-size: 11px;
+  color: var(--red);
+  font-weight: 600;
+}
