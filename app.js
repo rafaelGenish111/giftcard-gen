@@ -13,6 +13,9 @@ const btnDownload = document.getElementById('btn-download');
 const canvas = document.getElementById('gift-card-canvas');
 const ctx = canvas.getContext('2d');
 
+// Current recipient phone
+let currentPhone = '';
+
 // Preload background image
 const bgImage = new Image();
 bgImage.src = 'background.jpeg';
@@ -55,8 +58,8 @@ const FIELD_CONFIG = {
 };
 
 const TEXT_COLOR = '#4a3728';
-const FIELD_FONT_SIZE = 0.030;   // as fraction of image height
-const BLESSING_FONT_SIZE = 0.024;
+const FIELD_FONT_SIZE = 0.038;   // as fraction of image height (larger for Amatic SC)
+const BLESSING_FONT_SIZE = 0.032;
 
 // Draw the gift card on canvas
 function drawCard(data) {
@@ -77,7 +80,7 @@ function drawCard(data) {
       ctx.textBaseline = 'middle';
 
       // Draw recipient name
-      ctx.font = `600 ${fieldFontSize}px Assistant, sans-serif`;
+      ctx.font = `700 ${fieldFontSize}px 'Amatic SC', cursive`;
       ctx.fillText(
         data.recipient,
         w * FIELD_CONFIG.recipient.x,
@@ -104,7 +107,7 @@ function drawCard(data) {
       // Draw blessing text (multi-line)
       if (data.blessing) {
         const blessingFontSize = Math.round(h * BLESSING_FONT_SIZE);
-        ctx.font = `400 ${blessingFontSize}px Assistant, sans-serif`;
+        ctx.font = `400 ${blessingFontSize}px 'Amatic SC', cursive`;
         const cfg = FIELD_CONFIG.blessing;
         const maxTextWidth = w * cfg.maxWidth;
         const lineHeight = blessingFontSize * cfg.lineHeight;
@@ -157,7 +160,11 @@ form.addEventListener('submit', async (e) => {
     duration: document.getElementById('treatmentDuration').value,
     validDate: formatDate(document.getElementById('validUntil').value),
     blessing: document.getElementById('blessing').value.trim(),
+    phone: document.getElementById('recipientPhone').value.trim(),
   };
+
+  // Store phone for WhatsApp send
+  currentPhone = data.phone;
 
   await drawCard(data);
   showScreen(previewScreen);
@@ -192,23 +199,44 @@ function downloadImage() {
   link.click();
 }
 
-// WhatsApp / Share button
+// Format phone to international format (Israel)
+function formatPhone(phone) {
+  let cleaned = phone.replace(/[\s\-()]/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '972' + cleaned.slice(1);
+  } else if (!cleaned.startsWith('972')) {
+    cleaned = '972' + cleaned;
+  }
+  return cleaned;
+}
+
+// WhatsApp - send directly to recipient
 btnWhatsapp.addEventListener('click', async () => {
   const loading = showLoading();
   try {
     const blob = await canvasToBlob();
     const file = new File([blob], 'gift-card.png', { type: 'image/png' });
+    const phone = formatPhone(currentPhone);
 
+    // Try Web Share API first (works best on iOS - lets user pick WhatsApp)
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         files: [file],
         title: 'Gift Card - Leah Genish',
+        text: 'קיבלת כרטיס מתנה לטיפול אצל Leah Genish!',
       });
     } else {
+      // Fallback: open WhatsApp chat with the recipient's number
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent('קיבלת כרטיס מתנה לטיפול אצל Leah Genish! 🎁')}`;
+      window.open(waUrl, '_blank');
+      // Also download the image so user can attach it
       downloadImage();
     }
   } catch (err) {
     if (err.name !== 'AbortError') {
+      const phone = formatPhone(currentPhone);
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent('קיבלת כרטיס מתנה לטיפול אצל Leah Genish! 🎁')}`;
+      window.open(waUrl, '_blank');
       downloadImage();
     }
   } finally {
