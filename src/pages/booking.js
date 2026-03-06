@@ -1,5 +1,5 @@
 import { renderNav } from '../lib/nav.js';
-import { getClients } from '../lib/api.js';
+import { getClients, createAppointment } from '../lib/api.js';
 import { escapeHtml, formatPhone, TREATMENT_TYPES } from '../lib/ui.js';
 import { buildWhatsAppMessage } from '../lib/settings.js';
 
@@ -108,6 +108,7 @@ export function renderBooking(app, params) {
   let allClients = [];
   let selectedClient = null;
   let shortLink = null;
+  let appointmentSaved = false;
 
   getClients().then(clients => {
     allClients = clients;
@@ -199,7 +200,7 @@ export function renderBooking(app, params) {
   dateEl.addEventListener('change', updateMessage);
   timeEl.addEventListener('change', updateMessage);
 
-  const handleClick = (e) => {
+  const handleClick = async (e) => {
     const item = e.target.closest('.dropdown-item');
     if (item) {
       const c = allClients.find(c => c._id === item.dataset.clientId);
@@ -210,6 +211,7 @@ export function renderBooking(app, params) {
     if (e.target.closest('#clear-client')) {
       selectedClient = null;
       shortLink = null;
+      appointmentSaved = false;
       document.getElementById('book-client-id').value = '';
       document.getElementById('selected-client').style.display = 'none';
       searchInput.style.display = 'block';
@@ -219,11 +221,14 @@ export function renderBooking(app, params) {
       return;
     }
 
-    // Google Calendar button - add to YOUR calendar
+    // Google Calendar button - add to YOUR calendar + save appointment
     if (e.target.closest('#btn-gcal')) {
       if (!selectedClient) return;
-      const { type, date, time, durationMin } = getFormData();
+      const { type, date, time, durationMin, tt } = getFormData();
       if (!date || !time) return alert('נא למלא תאריך ושעה');
+
+      await saveAppointment();
+
       const url = buildGoogleCalendarUrl({
         title: `${type} - ${selectedClient.name}`,
         date, time, durationMin,
@@ -234,12 +239,36 @@ export function renderBooking(app, params) {
   };
   app.addEventListener('click', handleClick);
 
+  async function saveAppointment() {
+    if (appointmentSaved || !selectedClient) return;
+    const { type, date, time, durationMin, tt } = getFormData();
+    if (!date || !time) return;
+    try {
+      await createAppointment({
+        clientId: selectedClient._id,
+        clientName: selectedClient.name,
+        clientPhone: selectedClient.phone || '',
+        type,
+        date,
+        time,
+        duration: tt ? tt.duration : '',
+        status: 'scheduled',
+      });
+      appointmentSaved = true;
+    } catch {
+      console.warn('Failed to save appointment');
+    }
+  }
+
   const form = document.getElementById('booking-form');
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedClient) return alert('נא לבחור לקוח/ה');
     const message = document.getElementById('book-message').value;
     if (!message) return alert('נא למלא את כל השדות');
+
+    await saveAppointment();
+
     const phone = formatPhone(selectedClient.phone);
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
   };

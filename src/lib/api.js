@@ -78,3 +78,32 @@ export async function updateTreatment(id, updates) {
   });
   return res.json();
 }
+
+// --- Appointments ---
+export async function getAppointments({ clientId, from, to } = {}) {
+  const params = new URLSearchParams();
+  if (clientId) params.set('clientId', clientId);
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  const q = params.toString();
+  const res = await fetch(`${BASE}/appointments${q ? `?${q}` : ''}`);
+  return res.json();
+}
+
+export async function createAppointment(data) {
+  const res = await fetch(`${BASE}/appointments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function updateAppointment(id, updates) {
+  const res = await fetch(`${BASE}/appointments`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, ...updates }),
+  });
+  return res.json();
+}
