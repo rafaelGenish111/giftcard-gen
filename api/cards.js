@@ -1,8 +1,7 @@
-const { getDb } = require('./_db');
-const { ObjectId } = require('mongodb');
+import { getDb } from './_db.js';
+import { ObjectId } from 'mongodb';
 
-module.exports = async function handler(req, res) {
-  // CORS
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -52,4 +51,4 @@ module.exports = async function handler(req, res) {
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
-};
+}

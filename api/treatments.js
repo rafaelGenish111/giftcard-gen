@@ -1,7 +1,7 @@
-const { getDb } = require('./_db');
-const { ObjectId } = require('mongodb');
+import { getDb } from './_db.js';
+import { ObjectId } from 'mongodb';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -23,11 +23,11 @@ module.exports = async function handler(req, res) {
   // POST - create treatment
   if (req.method === 'POST') {
     const { clientId, date, type, duration, price, isPaid, notes } = req.body;
-    if (!clientId || !date || !type) return res.status(400).json({ error: 'clientId, date, and type are required' });
+    if (!clientId || !type) return res.status(400).json({ error: 'clientId and type are required' });
 
     const treatment = {
       clientId,
-      date,
+      date: date || new Date().toISOString().split('T')[0],
       type,
       duration: duration || '',
       price: price != null ? Number(price) : null,
@@ -50,4 +50,4 @@ module.exports = async function handler(req, res) {
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
-};
+}
