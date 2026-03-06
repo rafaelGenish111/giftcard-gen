@@ -1034,3 +1034,29 @@ html, body {
   color: #1a73e8;
   margin-top: 4px;
 }
+
+/* ===================== */
+/* Booking buttons       */
+/* ===================== */
+.booking-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-gcal {
+  background: var(--white) !important;
+  color: var(--text) !important;
+  border: 1.5px solid var(--primary-light) !important;
+}
+
+.btn-gcal:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-wa {
+  background: #25D366 !important;
+  color: #fff !important;
+}
