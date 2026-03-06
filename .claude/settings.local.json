@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"from PIL import Image; print\\(''ok''\\)\")",
+      "Bash(gh auth status)",
+      "Bash(vercel --version)",
+      "Bash(git init)",
+      "Bash(git branch -M main)",
+      "Bash(git add index.html style.css app.js manifest.json sw.js background.jpeg icons/icon-192.png icons/icon-512.png)",
+      "Bash(git commit:*)",
+      "Bash(gh repo create giftcard-gen --public --source=. --push --description \"Gift card generator PWA for Leah Genish massage & reflexology\")",
+      "Bash(vercel --yes)",
+      "Bash(vercel --yes --scope rafaelgenish111s-projects)",
+      "Bash(vercel link --scope rafaelgenish111s-projects --yes)",
+      "Bash(vercel link --yes --team rafaelgenish111s-projects)",
+      "Bash(VERCEL_TEAM_ID=team_AAPWztIVuhDYSWG9yhY4Aq9e vercel link --yes)",
+      "Bash(vercel project add giftcard-gen --scope rafaelgenish111s-projects)",
+      "Bash(vercel deploy --yes --scope rafaelgenish111s-projects --name giftcard-gen)",
+      "Bash(vercel project ls --scope rafaelgenish111s-projects)",
+      "Bash(vercel inspect giftcard-gen --scope rafaelgenish111s-projects)",
+      "Bash(git push origin main)",
+      "Bash(vercel deploy --yes --prod)",
+      "Bash(npm install)",
+      "Bash(npm init vite@latest temp-vite -- --template vanilla)",
+      "Bash(npm run build)",
+      "Bash(git add -A)"
+    ]
+  }
+}
