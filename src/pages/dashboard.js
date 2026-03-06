@@ -12,7 +12,7 @@ export function renderDashboard(app) {
   app.innerHTML = `
     <div class="screen dashboard-screen">
       <header class="dash-header">
-        <h1>Leah Genish</h1>
+        <img src="/logo.png" alt="Leah Genish" class="dash-logo" />
         <p class="subtitle">ניהול לקוחות וטיפולים</p>
       </header>
 

@@ -1,7 +1,7 @@
 {
-  "name": "Gift Card Generator - Leah Genish",
-  "short_name": "Gift Card",
-  "description": "Gift card generator for Leah Genish massage & reflexology",
+  "name": "Leah Genish - ניהול לקוחות וטיפולים",
+  "short_name": "Leah Genish",
+  "description": "ניהול לקוחות, טיפולים, תורים וכרטיסי מתנה",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5ede6",
@@ -9,12 +9,12 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
