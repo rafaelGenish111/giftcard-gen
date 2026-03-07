@@ -1,3 +1,5 @@
+import { initSideMenu } from './nav.js';
+
 const routes = [];
 let currentCleanup = null;
 let fallbackHandler = null;
@@ -41,12 +43,14 @@ function handleRoute() {
         params[name] = match[i + 1];
       });
       currentCleanup = r.handler(app, params) || null;
+      initSideMenu();
       return;
     }
   }
 
   if (fallbackHandler) {
     currentCleanup = fallbackHandler(app, {}) || null;
+    initSideMenu();
   }
 }
 
