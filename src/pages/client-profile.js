@@ -1,11 +1,12 @@
 import { renderNav } from '../lib/nav.js';
-import { getClient, getTreatments, createTreatment, updateTreatment, getCards } from '../lib/api.js';
+import { getClient, getTreatments, createTreatment, updateTreatment, getCards, getAppointments, updateAppointment } from '../lib/api.js';
 import { escapeHtml, formatDate, formatPhone, TREATMENT_TYPES } from '../lib/ui.js';
 import { navigate } from '../lib/router.js';
 
 let client = null;
 let treatments = [];
 let cards = [];
+let appointments = [];
 
 function renderTreatmentsList() {
   const el = document.getElementById('treatments-list');
@@ -35,6 +36,55 @@ function renderTreatmentsList() {
   `).join('');
 }
 
+function formatDateHe(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function renderAppointmentsList() {
+  const el = document.getElementById('client-appointments');
+  const today = new Date().toISOString().split('T')[0];
+  const upcoming = appointments.filter(a => a.date >= today && a.status !== 'cancelled');
+  const past = appointments.filter(a => a.date < today || a.status === 'cancelled');
+
+  if (appointments.length === 0) {
+    el.innerHTML = '<div class="empty-state"><p>אין תורים</p></div>';
+    return;
+  }
+
+  let html = '';
+  if (upcoming.length > 0) {
+    html += '<div class="appt-sub-label">קרובים</div>';
+    html += upcoming.map(a => `
+      <div class="appt-item">
+        <div class="appt-time">${escapeHtml(a.time)}</div>
+        <div class="appt-details">
+          <div class="appt-type">${escapeHtml(a.type)}</div>
+          <div class="appt-date-text">${formatDateHe(a.date)}</div>
+        </div>
+        <div class="appt-actions-col">
+          <button class="btn-action btn-delete" data-cancel-appt="${a._id}">ביטול</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  if (past.length > 0) {
+    html += '<div class="appt-sub-label">עברו</div>';
+    html += past.map(a => `
+      <div class="appt-item ${a.status === 'cancelled' ? 'cancelled' : ''}">
+        <div class="appt-time">${escapeHtml(a.time)}</div>
+        <div class="appt-details">
+          <div class="appt-type">${escapeHtml(a.type)}</div>
+          <div class="appt-date-text">${formatDateHe(a.date)}</div>
+        </div>
+        ${a.status === 'cancelled' ? '<span class="appt-cancelled-badge">בוטל</span>' : ''}
+      </div>
+    `).join('');
+  }
+  el.innerHTML = html;
+}
+
 function renderGiftCards() {
   const el = document.getElementById('client-cards');
   if (cards.length === 0) {
@@ -60,6 +110,7 @@ export function renderClientProfile(app, params) {
   client = null;
   treatments = [];
   cards = [];
+  appointments = [];
 
   app.innerHTML = `
     <div class="screen profile-screen">
@@ -83,6 +134,14 @@ export function renderClientProfile(app, params) {
           <a href="/clients/${params.id}/edit" data-link class="profile-action-btn edit">עריכה</a>
           <a href="/book?client=${params.id}" data-link class="profile-action-btn book">קביעת תור</a>
         </div>
+
+        <section class="profile-section">
+          <div class="section-header">
+            <h2>תורים</h2>
+            <a href="/book?client=${params.id}" data-link class="btn-new">+ תור חדש</a>
+          </div>
+          <div id="client-appointments"></div>
+        </section>
 
         <section class="profile-section">
           <div class="section-header">
@@ -123,10 +182,12 @@ export function renderClientProfile(app, params) {
     getClient(params.id),
     getTreatments(params.id),
     getCards(params.id),
-  ]).then(([c, t, gc]) => {
+    getAppointments({ clientId: params.id }),
+  ]).then(([c, t, gc, appts]) => {
     client = c;
     treatments = t;
     cards = gc;
+    appointments = appts.sort((a, b) => a.date === b.date ? (a.time || '').localeCompare(b.time || '') : a.date.localeCompare(b.date));
 
     const infoEl = document.getElementById('profile-info');
     if (!client) {
@@ -142,6 +203,7 @@ export function renderClientProfile(app, params) {
       ${client.notes ? `<p class="profile-notes">${escapeHtml(client.notes)}</p>` : ''}
     `;
 
+    renderAppointmentsList();
     renderTreatmentsList();
     renderGiftCards();
   }).catch(() => {
@@ -199,6 +261,20 @@ export function renderClientProfile(app, params) {
         if (t) t.isPaid = isPaid;
         renderTreatmentsList();
       } catch { alert('שגיאה בעדכון'); }
+      return;
+    }
+
+    // Cancel appointment
+    const cancelApptBtn = e.target.closest('[data-cancel-appt]');
+    if (cancelApptBtn) {
+      if (!confirm('לבטל את התור?')) return;
+      const id = cancelApptBtn.dataset.cancelAppt;
+      try {
+        await updateAppointment(id, { status: 'cancelled' });
+        const a = appointments.find(a => a._id === id);
+        if (a) a.status = 'cancelled';
+        renderAppointmentsList();
+      } catch { alert('שגיאה בביטול'); }
       return;
     }
 
