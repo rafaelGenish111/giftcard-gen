@@ -5,7 +5,7 @@ const FIELD_CONFIG = {
   recipient: { x: 0.42, y: 0.332, maxWidth: 0.45 },
   duration:  { x: 0.42, y: 0.385, maxWidth: 0.45 },
   validDate: { x: 0.42, y: 0.438, maxWidth: 0.45 },
-  blessing:  { x: 0.50, y: 0.565, maxWidth: 0.68, lineHeight: 1.7 },
+  blessing:  { x: 0.50, y: 0.565, maxWidth: 0.68, lineHeight: 1.3 },
 };
 
 const TEXT_COLOR = '#4a3728';
@@ -24,7 +24,10 @@ function loadBg() {
 }
 
 export async function drawCard(canvas, data) {
-  await document.fonts.load("400 16px 'Bellefair'");
+  await Promise.all([
+    document.fonts.load("400 16px 'Bellefair'"),
+    document.fonts.load("400 16px 'Varela Round'"),
+  ]);
   const img = await loadBg();
   const ctx = canvas.getContext('2d');
   const w = img.naturalWidth;
@@ -49,7 +52,7 @@ export async function drawCard(canvas, data) {
   // Blessing
   if (data.blessing) {
     const blessingFontSize = Math.round(h * BLESSING_FONT_SIZE);
-    ctx.font = `400 ${blessingFontSize}px 'Bellefair', serif`;
+    ctx.font = `400 ${blessingFontSize}px 'Varela Round', sans-serif`;
     const cfg = FIELD_CONFIG.blessing;
     const maxTextWidth = w * cfg.maxWidth;
     const lineHeight = blessingFontSize * cfg.lineHeight;
