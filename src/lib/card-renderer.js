@@ -10,7 +10,7 @@ const FIELD_CONFIG = {
 
 const TEXT_COLOR = '#4a3728';
 const FIELD_FONT_SIZE = 0.038;
-const BLESSING_FONT_SIZE = 0.032;
+const BLESSING_FONT_SIZE = 0.025;
 
 let bgImage = null;
 

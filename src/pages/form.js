@@ -38,7 +38,8 @@ export function renderForm(app) {
 
         <div class="form-group">
           <label for="recipientName">שם מקבל/ת המתנה (עבור)</label>
-          <input type="text" id="recipientName" placeholder="לדוגמה: דנה כהן" required>
+          <input type="text" id="recipientName" placeholder="שם חופשי או חיפוש לקוח/ה..." required autocomplete="off">
+          <div id="recipient-dropdown" class="client-dropdown" style="display:none"></div>
         </div>
 
         <div class="form-group">
@@ -134,8 +135,40 @@ export function renderForm(app) {
   };
   searchInput.addEventListener('input', handleSearch);
 
+  // Recipient name search (optional client autocomplete)
+  const recipientInput = document.getElementById('recipientName');
+  let recipientDebounce;
+  const handleRecipientSearch = () => {
+    clearTimeout(recipientDebounce);
+    recipientDebounce = setTimeout(() => {
+      const q = recipientInput.value.trim();
+      const dropdown = document.getElementById('recipient-dropdown');
+      if (!q || q.length < 2) { dropdown.style.display = 'none'; return; }
+      const filtered = allClients.filter(c => c.name.includes(q));
+      if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+      dropdown.style.display = 'block';
+      dropdown.innerHTML = filtered.slice(0, 5).map(c => `
+        <div class="dropdown-item" data-rcid="${c._id}">${escapeHtml(c.name)} - ${escapeHtml(c.phone || '')}</div>
+      `).join('');
+    }, 200);
+  };
+  recipientInput.addEventListener('input', handleRecipientSearch);
+
   const handleClick = (e) => {
-    const item = e.target.closest('.dropdown-item');
+    // Recipient client selection
+    const recipientItem = e.target.closest('[data-rcid]');
+    if (recipientItem) {
+      const c = allClients.find(c => c._id === recipientItem.dataset.rcid);
+      if (c) {
+        recipientInput.value = c.name;
+        document.getElementById('recipientPhone').value = c.phone || '';
+        document.getElementById('recipient-dropdown').style.display = 'none';
+      }
+      return;
+    }
+
+    // Link client selection
+    const item = e.target.closest('[data-cid]');
     if (item) {
       const c = allClients.find(c => c._id === item.dataset.cid);
       if (c) selectLinkedClient(c);
@@ -190,6 +223,7 @@ export function renderForm(app) {
   return () => {
     form.removeEventListener('submit', handleSubmit);
     searchInput.removeEventListener('input', handleSearch);
+    recipientInput.removeEventListener('input', handleRecipientSearch);
     app.removeEventListener('click', handleClick);
   };
 }
