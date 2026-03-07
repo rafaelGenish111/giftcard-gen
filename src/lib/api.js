@@ -107,3 +107,28 @@ export async function updateAppointment(id, updates) {
   });
   return res.json();
 }
+
+// --- Punch Cards ---
+export async function getPunchCards(clientId) {
+  const url = clientId ? `${BASE}/punchcards?clientId=${clientId}` : `${BASE}/punchcards`;
+  const res = await fetch(url);
+  return res.json();
+}
+
+export async function createPunchCard(data) {
+  const res = await fetch(`${BASE}/punchcards`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function updatePunchCard(id, updates) {
+  const res = await fetch(`${BASE}/punchcards`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, ...updates }),
+  });
+  return res.json();
+}

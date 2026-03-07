@@ -1481,3 +1481,171 @@ html, body {
   color: var(--red);
   font-weight: 600;
 }
+
+/* Punch Cards */
+.punch-screen {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.punch-main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 20px 100px;
+}
+
+.new-punch-form {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.punch-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.punch-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.punch-client-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--primary-dark);
+  text-decoration: none;
+}
+
+.punch-remaining {
+  font-size: 13px;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.punch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.punch-slot {
+  aspect-ratio: 1;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  font-family: inherit;
+}
+
+.punch-slot:active {
+  transform: scale(0.95);
+}
+
+.punch-slot.used {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.punch-slot.free {
+  border-color: var(--primary);
+  border-style: dashed;
+  border-width: 2px;
+  grid-column: span 2;
+  aspect-ratio: auto;
+  padding: 12px;
+}
+
+.punch-slot.free.used {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-style: solid;
+}
+
+.punch-num {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.punch-slot.used .punch-num {
+  color: var(--white);
+  opacity: 0.6;
+}
+
+.punch-free-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.punch-slot.free.used .punch-free-label {
+  color: var(--white);
+}
+
+.punch-check {
+  position: absolute;
+  color: var(--white);
+}
+
+.punch-slot.free .punch-check {
+  position: static;
+}
+
+.punch-delete {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.punch-delete:active {
+  color: var(--red);
+}
+
+/* Punch info on client profile */
+.punch-info-section {
+  margin-bottom: 8px;
+}
+
+.punch-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, var(--primary-light), var(--bg));
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.punch-info-item strong {
+  color: var(--primary-dark);
+  font-size: 18px;
+}
+
+.punch-info-link {
+  color: var(--primary-dark);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}

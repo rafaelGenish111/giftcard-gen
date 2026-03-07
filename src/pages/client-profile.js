@@ -1,5 +1,5 @@
 import { renderNav } from '../lib/nav.js';
-import { getClient, getTreatments, createTreatment, updateTreatment, getCards, getAppointments, updateAppointment } from '../lib/api.js';
+import { getClient, getTreatments, createTreatment, updateTreatment, getCards, getAppointments, updateAppointment, getPunchCards } from '../lib/api.js';
 import { escapeHtml, formatDate, formatPhone, TREATMENT_TYPES } from '../lib/ui.js';
 import { navigate } from '../lib/router.js';
 
@@ -7,6 +7,28 @@ let client = null;
 let treatments = [];
 let cards = [];
 let appointments = [];
+let punchCards = [];
+
+function renderPunchInfo() {
+  const el = document.getElementById('punch-info');
+  if (!el) return;
+  const active = punchCards.filter(c => {
+    const usedCount = c.slots.filter(s => s.used).length;
+    return usedCount < 11;
+  });
+  if (active.length === 0) {
+    el.innerHTML = '<div class="empty-state"><p>אין כרטיסיות פעילות</p></div>';
+    return;
+  }
+  el.innerHTML = active.map(card => {
+    const usedCount = card.slots.filter(s => s.used).length;
+    const remaining = 11 - usedCount;
+    return `<div class="punch-info-item">
+      <span>כרטיסייה: נותרו <strong>${remaining}</strong> טיפולים</span>
+      <a href="/punch-cards" data-link class="punch-info-link">צפייה</a>
+    </div>`;
+  }).join('');
+}
 
 function renderTreatmentsList() {
   const el = document.getElementById('treatments-list');
@@ -111,6 +133,7 @@ export function renderClientProfile(app, params) {
   treatments = [];
   cards = [];
   appointments = [];
+  punchCards = [];
 
   app.innerHTML = `
     <div class="screen profile-screen">
@@ -134,6 +157,8 @@ export function renderClientProfile(app, params) {
           <a href="/clients/${params.id}/edit" data-link class="profile-action-btn edit">עריכה</a>
           <a href="/book?client=${params.id}" data-link class="profile-action-btn book">קביעת תור</a>
         </div>
+
+        <div id="punch-info" class="punch-info-section"></div>
 
         <section class="profile-section">
           <div class="section-header">
@@ -183,11 +208,13 @@ export function renderClientProfile(app, params) {
     getTreatments(params.id),
     getCards(params.id),
     getAppointments({ clientId: params.id }),
-  ]).then(([c, t, gc, appts]) => {
+    getPunchCards(params.id),
+  ]).then(([c, t, gc, appts, pc]) => {
     client = c;
     treatments = t;
     cards = gc;
     appointments = appts.sort((a, b) => a.date === b.date ? (a.time || '').localeCompare(b.time || '') : a.date.localeCompare(b.date));
+    punchCards = pc;
 
     const infoEl = document.getElementById('profile-info');
     if (!client) {
@@ -203,6 +230,7 @@ export function renderClientProfile(app, params) {
       ${client.notes ? `<p class="profile-notes">${escapeHtml(client.notes)}</p>` : ''}
     `;
 
+    renderPunchInfo();
     renderAppointmentsList();
     renderTreatmentsList();
     renderGiftCards();
