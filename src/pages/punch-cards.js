@@ -1,6 +1,7 @@
 import { renderNav } from '../lib/nav.js';
 import { getPunchCards, createPunchCard, updatePunchCard, getClients } from '../lib/api.js';
 import { escapeHtml } from '../lib/ui.js';
+import { renderInlineClientForm, setupInlineClient } from '../lib/inline-client.js';
 
 let cards = [];
 let allClients = [];
@@ -57,6 +58,7 @@ export function renderPunchCards(app) {
           <div id="punch-client-dropdown" class="client-dropdown" style="display:none"></div>
           <input type="hidden" id="punch-client-id" />
           <div id="punch-selected" class="selected-client" style="display:none"></div>
+          ${renderInlineClientForm('punch')}
           <button id="btn-create-punch" class="btn-generate" style="padding:10px;font-size:15px" disabled>צור כרטיסייה</button>
         </div>
 
@@ -70,11 +72,35 @@ export function renderPunchCards(app) {
   `;
 
   let selectedClient = null;
+  let hideInlineForm = null;
+
+  function selectPunchClient(c) {
+    selectedClient = c;
+    document.getElementById('punch-client-id').value = c._id;
+    const searchEl = document.getElementById('punch-client-search');
+    searchEl.style.display = 'none';
+    document.getElementById('punch-client-dropdown').style.display = 'none';
+    if (hideInlineForm) hideInlineForm();
+    const selEl = document.getElementById('punch-selected');
+    selEl.style.display = 'flex';
+    selEl.innerHTML = `
+      <span>${escapeHtml(c.name)}</span>
+      <button type="button" id="punch-clear-client" class="btn-action btn-delete" style="padding:4px 10px;font-size:12px">x</button>
+    `;
+    document.getElementById('btn-create-punch').disabled = false;
+  }
 
   Promise.all([getPunchCards(), getClients()]).then(([c, cl]) => {
     cards = c;
     allClients = cl;
     renderCards();
+    hideInlineForm = setupInlineClient({
+      prefix: 'punch',
+      searchInput: document.getElementById('punch-client-search'),
+      dropdownEl: document.getElementById('punch-client-dropdown'),
+      allClients,
+      onClientCreated: (c) => selectPunchClient(c),
+    });
   });
 
   // Client search
@@ -106,17 +132,7 @@ export function renderPunchCards(app) {
     // Select client from dropdown
     const dropItem = e.target.closest('[data-pclient-id]');
     if (dropItem) {
-      selectedClient = { _id: dropItem.dataset.pclientId, name: dropItem.dataset.pclientName };
-      document.getElementById('punch-client-id').value = selectedClient._id;
-      searchInput.style.display = 'none';
-      document.getElementById('punch-client-dropdown').style.display = 'none';
-      const selEl = document.getElementById('punch-selected');
-      selEl.style.display = 'flex';
-      selEl.innerHTML = `
-        <span>${escapeHtml(selectedClient.name)}</span>
-        <button type="button" id="punch-clear-client" class="btn-action btn-delete" style="padding:4px 10px;font-size:12px">x</button>
-      `;
-      document.getElementById('btn-create-punch').disabled = false;
+      selectPunchClient({ _id: dropItem.dataset.pclientId, name: dropItem.dataset.pclientName });
       return;
     }
 
@@ -125,6 +141,7 @@ export function renderPunchCards(app) {
       selectedClient = null;
       document.getElementById('punch-client-id').value = '';
       document.getElementById('punch-selected').style.display = 'none';
+      if (hideInlineForm) hideInlineForm();
       searchInput.style.display = 'block';
       searchInput.value = '';
       document.getElementById('btn-create-punch').disabled = true;

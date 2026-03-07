@@ -2,6 +2,7 @@ import { renderNav } from '../lib/nav.js';
 import { getClients, createAppointment } from '../lib/api.js';
 import { escapeHtml, formatPhone, TREATMENT_TYPES } from '../lib/ui.js';
 import { buildWhatsAppMessage } from '../lib/settings.js';
+import { renderInlineClientForm, setupInlineClient } from '../lib/inline-client.js';
 
 const DURATION_MAP = {
   '60 דקות': 60,
@@ -65,6 +66,7 @@ export function renderBooking(app, params) {
           <div id="client-dropdown" class="client-dropdown" style="display:none"></div>
           <input type="hidden" id="book-client-id" />
           <div id="selected-client" class="selected-client" style="display:none"></div>
+          ${renderInlineClientForm('book')}
         </div>
         <div class="form-group">
           <label>סוג טיפול</label>
@@ -114,12 +116,21 @@ export function renderBooking(app, params) {
   let shortLink = null;
   let appointmentSaved = false;
 
+  let hideInlineForm = null;
+
   getClients().then(clients => {
     allClients = clients;
     if (preselectedClientId) {
       const c = clients.find(c => c._id === preselectedClientId);
       if (c) selectClient(c);
     }
+    hideInlineForm = setupInlineClient({
+      prefix: 'book',
+      searchInput: document.getElementById('book-client-search'),
+      dropdownEl: document.getElementById('client-dropdown'),
+      allClients,
+      onClientCreated: (c) => selectClient(c),
+    });
   });
 
   function selectClient(c) {
@@ -127,6 +138,7 @@ export function renderBooking(app, params) {
     document.getElementById('book-client-id').value = c._id;
     document.getElementById('book-client-search').style.display = 'none';
     document.getElementById('client-dropdown').style.display = 'none';
+    if (hideInlineForm) hideInlineForm();
     const selEl = document.getElementById('selected-client');
     selEl.style.display = 'flex';
     selEl.innerHTML = `
@@ -222,6 +234,7 @@ export function renderBooking(app, params) {
       appointmentSaved = false;
       document.getElementById('book-client-id').value = '';
       document.getElementById('selected-client').style.display = 'none';
+      if (hideInlineForm) hideInlineForm();
       searchInput.style.display = 'block';
       searchInput.value = '';
       document.getElementById('book-message').value = '';

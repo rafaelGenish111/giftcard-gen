@@ -131,6 +131,34 @@ html, body {
   background: var(--primary-light);
 }
 
+.btn-import-contact.compact {
+  padding: 8px;
+  margin-bottom: 0;
+  font-size: 13px;
+}
+
+.inline-client-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg);
+  border: 2px solid var(--primary-light);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.inline-client-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.compact-btn {
+  padding: 10px !important;
+  font-size: 14px !important;
+}
+
 .form-group label {
   font-size: 14px;
   font-weight: 600;
