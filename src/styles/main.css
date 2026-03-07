@@ -108,6 +108,29 @@ html, body {
   gap: 6px;
 }
 
+.btn-import-contact {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--primary-dark);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.btn-import-contact:active {
+  background: var(--primary-light);
+}
+
 .form-group label {
   font-size: 14px;
   font-weight: 600;
