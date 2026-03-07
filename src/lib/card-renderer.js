@@ -10,7 +10,7 @@ const FIELD_CONFIG = {
 
 const TEXT_COLOR = '#4a3728';
 const FIELD_FONT_SIZE = 0.038;
-const BLESSING_FONT_SIZE = 0.025;
+const BLESSING_FONT_SIZE = 0.020;
 
 let bgImage = null;
 
@@ -24,6 +24,7 @@ function loadBg() {
 }
 
 export async function drawCard(canvas, data) {
+  await document.fonts.load("400 16px 'Bellefair'");
   const img = await loadBg();
   const ctx = canvas.getContext('2d');
   const w = img.naturalWidth;
@@ -39,7 +40,7 @@ export async function drawCard(canvas, data) {
   ctx.textBaseline = 'middle';
 
   // Fields
-  ctx.font = `700 ${fieldFontSize}px 'Amatic SC', cursive`;
+  ctx.font = `700 ${fieldFontSize}px 'Bellefair', serif`;
 
   ctx.fillText(data.recipient, w * FIELD_CONFIG.recipient.x, h * FIELD_CONFIG.recipient.y, w * FIELD_CONFIG.recipient.maxWidth);
   ctx.fillText(data.duration, w * FIELD_CONFIG.duration.x, h * FIELD_CONFIG.duration.y, w * FIELD_CONFIG.duration.maxWidth);
@@ -48,7 +49,7 @@ export async function drawCard(canvas, data) {
   // Blessing
   if (data.blessing) {
     const blessingFontSize = Math.round(h * BLESSING_FONT_SIZE);
-    ctx.font = `400 ${blessingFontSize}px 'Amatic SC', cursive`;
+    ctx.font = `400 ${blessingFontSize}px 'Bellefair', serif`;
     const cfg = FIELD_CONFIG.blessing;
     const maxTextWidth = w * cfg.maxWidth;
     const lineHeight = blessingFontSize * cfg.lineHeight;
