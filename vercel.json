@@ -4,5 +4,11 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!api|assets|icons|manifest|sw|background).*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/notifications",
+      "schedule": "0 5 * * *"
+    }
   ]
 }

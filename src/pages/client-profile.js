@@ -1,6 +1,7 @@
 import { renderNav } from '../lib/nav.js';
 import { getClient, getTreatments, createTreatment, updateTreatment, getCards, getAppointments, updateAppointment, getPunchCards } from '../lib/api.js';
 import { escapeHtml, formatDate, formatPhone, TREATMENT_TYPES } from '../lib/ui.js';
+import { buildBirthdayMessage } from '../lib/settings.js';
 import { navigate } from '../lib/router.js';
 
 let client = null;
@@ -128,6 +129,42 @@ function renderGiftCards() {
   `).join('');
 }
 
+function isBirthdaySoon(birthday) {
+  if (!birthday) return false;
+  const today = new Date();
+  const bday = new Date(birthday);
+  const thisYear = new Date(today.getFullYear(), bday.getMonth(), bday.getDate());
+  if (thisYear < today) thisYear.setFullYear(thisYear.getFullYear() + 1);
+  const diff = (thisYear - today) / (1000 * 60 * 60 * 24);
+  return diff >= 0 && diff <= 14;
+}
+
+function renderBirthdaySection() {
+  const el = document.getElementById('bday-section');
+  if (!el || !client || !client.birthday || !isBirthdaySoon(client.birthday)) {
+    if (el) el.style.display = 'none';
+    return;
+  }
+
+  el.style.display = '';
+  const phone = formatPhone(client.phone);
+
+  el.innerHTML = `
+    <div class="settings-card bday-greeting-card">
+      <h2>🎂 שלח מזל טוב</h2>
+      <div class="bday-toggle-row">
+        <button class="bday-type-btn active" data-gift="false">ללא מתנה</button>
+        <button class="bday-type-btn" data-gift="true">עם מתנה 🎁</button>
+      </div>
+      <pre class="bday-msg-preview settings-preview">${escapeHtml(buildBirthdayMessage(client.name, false))}</pre>
+      <button class="btn-generate btn-wa bday-send-btn" data-bday-send data-phone="${phone}" style="margin-top:10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-left:6px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+        שלח מזל טוב ב-WhatsApp
+      </button>
+    </div>
+  `;
+}
+
 export function renderClientProfile(app, params) {
   client = null;
   treatments = [];
@@ -157,6 +194,8 @@ export function renderClientProfile(app, params) {
           <a href="/clients/${params.id}/edit" data-link class="profile-action-btn edit">עריכה</a>
           <a href="/book?client=${params.id}" data-link class="profile-action-btn book">קביעת תור</a>
         </div>
+
+        <div id="bday-section" class="profile-section" style="display:none"></div>
 
         <div id="punch-info" class="punch-info-section"></div>
 
@@ -202,6 +241,8 @@ export function renderClientProfile(app, params) {
   const dateInput = document.getElementById('treat-date');
   dateInput.value = new Date().toISOString().split('T')[0];
 
+  let bdayWithGift = false;
+
   // Load data
   Promise.all([
     getClient(params.id),
@@ -234,6 +275,7 @@ export function renderClientProfile(app, params) {
     renderAppointmentsList();
     renderTreatmentsList();
     renderGiftCards();
+    renderBirthdaySection();
   }).catch(() => {
     document.getElementById('profile-info').innerHTML = '<p>שגיאה בטעינה</p>';
   });
@@ -244,6 +286,27 @@ export function renderClientProfile(app, params) {
     if (e.target.closest('#btn-wa') && client) {
       const phone = formatPhone(client.phone);
       window.open(`https://wa.me/${phone}`, '_blank');
+      return;
+    }
+
+    // Birthday toggle
+    const giftBtn = e.target.closest('.bday-type-btn');
+    if (giftBtn) {
+      bdayWithGift = giftBtn.dataset.gift === 'true';
+      document.querySelectorAll('.bday-type-btn').forEach(b => b.classList.remove('active'));
+      giftBtn.classList.add('active');
+      const preview = document.querySelector('.bday-msg-preview');
+      if (preview && client) {
+        preview.textContent = buildBirthdayMessage(client.name, bdayWithGift);
+      }
+      return;
+    }
+
+    // Birthday send
+    if (e.target.closest('[data-bday-send]') && client) {
+      const phone = formatPhone(client.phone);
+      const message = buildBirthdayMessage(client.name, bdayWithGift);
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
       return;
     }
 

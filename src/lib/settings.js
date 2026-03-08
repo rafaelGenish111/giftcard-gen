@@ -13,6 +13,19 @@ const DEFAULTS = {
 לאה גניש - מטפלת הוליסטית`,
   waNotes: `- נא להגיע 5 דקות לפני התור
 - במקרה של ביטול, נא להודיע 24 שעות מראש`,
+  bdayMessage: `שלום {name} 🎂🎉
+מזל טוב ליום הולדת!
+מאחלת לך שנה מלאה בריאות, שמחה ואושר!
+
+לאה גניש - מטפלת הוליסטית`,
+  bdayGiftMessage: `שלום {name} 🎂🎉
+מזל טוב ליום הולדת!
+מאחלת לך שנה מלאה בריאות, שמחה ואושר!
+
+יש לי מתנה קטנה עבורך 🎁
+טיפול מתנה! צרי איתי קשר לקביעת תור.
+
+לאה גניש - מטפלת הוליסטית`,
 };
 
 export function getSettings() {
@@ -25,7 +38,12 @@ export function getSettings() {
 }
 
 export function saveSettings(settings) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  const current = getSettings();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...settings }));
+}
+
+export function getDefaults() {
+  return DEFAULTS;
 }
 
 export function buildWhatsAppMessage({ name, type, date, time, link }) {
@@ -37,4 +55,10 @@ export function buildWhatsAppMessage({ name, type, date, time, link }) {
     .replace(/{time}/g, time)
     .replace(/{link}/g, link)
     .replace(/{notes}/g, settings.waNotes);
+}
+
+export function buildBirthdayMessage(name, withGift = false) {
+  const settings = getSettings();
+  const template = withGift ? settings.bdayGiftMessage : settings.bdayMessage;
+  return template.replace(/{name}/g, name);
 }

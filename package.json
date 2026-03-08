@@ -9,7 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "mongodb": "^6.12.0"
+    "mongodb": "^6.12.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "vite": "^7.3.1"

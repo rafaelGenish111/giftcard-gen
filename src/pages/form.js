@@ -1,5 +1,5 @@
 import { navigate } from '../lib/router.js';
-import { createCard, getClients, getClient } from '../lib/api.js';
+import { createCard, getClients } from '../lib/api.js';
 import { drawCard } from '../lib/card-renderer.js';
 import { renderNav } from '../lib/nav.js';
 import { escapeHtml } from '../lib/ui.js';
@@ -29,17 +29,11 @@ export function renderForm(app) {
 
       <form id="gift-form">
         <div class="form-group">
-          <label>קישור ללקוח/ה (אופציונלי)</label>
-          <input type="text" id="link-client-search" placeholder="חיפוש לפי שם..." autocomplete="off" />
-          <div id="link-dropdown" class="client-dropdown" style="display:none"></div>
+          <label for="recipientName">שם מקבל/ת המתנה</label>
+          <input type="text" id="recipientName" placeholder="הקלד/י שם..." required autocomplete="off">
+          <div id="recipient-dropdown" class="client-dropdown" style="display:none"></div>
           <input type="hidden" id="link-client-id" />
           <div id="link-selected" class="selected-client" style="display:none"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="recipientName">שם מקבל/ת המתנה (עבור)</label>
-          <input type="text" id="recipientName" placeholder="שם חופשי או חיפוש לקוח/ה..." required autocomplete="off">
-          <div id="recipient-dropdown" class="client-dropdown" style="display:none"></div>
         </div>
 
         <div class="form-group">
@@ -90,61 +84,52 @@ export function renderForm(app) {
   `;
 
   let allClients = [];
-  let selectedClient = null;
+  let linkedClient = null;
 
-  // Load clients for linking
+  const recipientInput = document.getElementById('recipientName');
+  const phoneInput = document.getElementById('recipientPhone');
+  const clientIdInput = document.getElementById('link-client-id');
+  const selectedEl = document.getElementById('link-selected');
+  const dropdown = document.getElementById('recipient-dropdown');
+
+  // Load clients
   getClients().then(clients => {
     allClients = clients;
     if (preselectedClientId) {
       const c = clients.find(c => c._id === preselectedClientId);
-      if (c) selectLinkedClient(c);
+      if (c) selectClient(c);
     }
   });
 
-  function selectLinkedClient(c) {
-    selectedClient = c;
-    document.getElementById('link-client-id').value = c._id;
-    document.getElementById('link-client-search').style.display = 'none';
-    document.getElementById('link-dropdown').style.display = 'none';
-    const selEl = document.getElementById('link-selected');
-    selEl.style.display = 'flex';
-    selEl.innerHTML = `
+  function selectClient(c) {
+    linkedClient = c;
+    clientIdInput.value = c._id;
+    recipientInput.style.display = 'none';
+    dropdown.style.display = 'none';
+    selectedEl.style.display = 'flex';
+    selectedEl.innerHTML = `
       <span>${escapeHtml(c.name)}</span>
       <button type="button" id="clear-link" class="btn-action btn-delete" style="padding:4px 10px;font-size:12px">×</button>
     `;
-    // Auto-fill name and phone
-    document.getElementById('recipientName').value = c.name || '';
-    document.getElementById('recipientPhone').value = c.phone || '';
+    phoneInput.value = c.phone || '';
   }
 
-  const searchInput = document.getElementById('link-client-search');
+  function clearClient() {
+    linkedClient = null;
+    clientIdInput.value = '';
+    selectedEl.style.display = 'none';
+    recipientInput.style.display = '';
+    recipientInput.value = '';
+    recipientInput.focus();
+  }
+
   let debounce;
   const handleSearch = () => {
     clearTimeout(debounce);
     debounce = setTimeout(() => {
-      const q = searchInput.value.trim();
-      const dropdown = document.getElementById('link-dropdown');
-      if (!q) { dropdown.style.display = 'none'; return; }
-      const filtered = allClients.filter(c => c.name.includes(q) || (c.phone && c.phone.includes(q)));
-      if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
-      dropdown.style.display = 'block';
-      dropdown.innerHTML = filtered.slice(0, 5).map(c => `
-        <div class="dropdown-item" data-cid="${c._id}">${escapeHtml(c.name)} - ${escapeHtml(c.phone || '')}</div>
-      `).join('');
-    }, 200);
-  };
-  searchInput.addEventListener('input', handleSearch);
-
-  // Recipient name search (optional client autocomplete)
-  const recipientInput = document.getElementById('recipientName');
-  let recipientDebounce;
-  const handleRecipientSearch = () => {
-    clearTimeout(recipientDebounce);
-    recipientDebounce = setTimeout(() => {
       const q = recipientInput.value.trim();
-      const dropdown = document.getElementById('recipient-dropdown');
       if (!q || q.length < 2) { dropdown.style.display = 'none'; return; }
-      const filtered = allClients.filter(c => c.name.includes(q));
+      const filtered = allClients.filter(c => c.name.includes(q) || (c.phone && c.phone.includes(q)));
       if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
       dropdown.style.display = 'block';
       dropdown.innerHTML = filtered.slice(0, 5).map(c => `
@@ -152,34 +137,17 @@ export function renderForm(app) {
       `).join('');
     }, 200);
   };
-  recipientInput.addEventListener('input', handleRecipientSearch);
+  recipientInput.addEventListener('input', handleSearch);
 
   const handleClick = (e) => {
-    // Recipient client selection
-    const recipientItem = e.target.closest('[data-rcid]');
-    if (recipientItem) {
-      const c = allClients.find(c => c._id === recipientItem.dataset.rcid);
-      if (c) {
-        recipientInput.value = c.name;
-        document.getElementById('recipientPhone').value = c.phone || '';
-        document.getElementById('recipient-dropdown').style.display = 'none';
-      }
-      return;
-    }
-
-    // Link client selection
-    const item = e.target.closest('[data-cid]');
+    const item = e.target.closest('[data-rcid]');
     if (item) {
-      const c = allClients.find(c => c._id === item.dataset.cid);
-      if (c) selectLinkedClient(c);
+      const c = allClients.find(c => c._id === item.dataset.rcid);
+      if (c) selectClient(c);
       return;
     }
     if (e.target.closest('#clear-link')) {
-      selectedClient = null;
-      document.getElementById('link-client-id').value = '';
-      document.getElementById('link-selected').style.display = 'none';
-      searchInput.style.display = 'block';
-      searchInput.value = '';
+      clearClient();
     }
   };
   app.addEventListener('click', handleClick);
@@ -193,14 +161,14 @@ export function renderForm(app) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const recipientPhone = document.getElementById('recipientPhone').value.trim();
+    const recipientPhone = phoneInput.value.trim();
     const validUntilRaw = document.getElementById('validUntil').value;
-    const recipient = document.getElementById('recipientName').value.trim();
+    const recipient = linkedClient ? linkedClient.name : recipientInput.value.trim();
     const duration = document.getElementById('treatmentDuration').value;
     const blessing = document.getElementById('blessing').value.trim();
     const buyerName = document.getElementById('buyerName').value.trim();
     const isPaid = document.getElementById('isPaid').checked;
-    const clientId = document.getElementById('link-client-id').value || null;
+    const clientId = clientIdInput.value || null;
 
     try {
       await createCard({ recipient, recipientPhone, duration, validUntil: validUntilRaw, blessing, buyerName, isPaid, clientId });
@@ -222,8 +190,7 @@ export function renderForm(app) {
   form.addEventListener('submit', handleSubmit);
   return () => {
     form.removeEventListener('submit', handleSubmit);
-    searchInput.removeEventListener('input', handleSearch);
-    recipientInput.removeEventListener('input', handleRecipientSearch);
+    recipientInput.removeEventListener('input', handleSearch);
     app.removeEventListener('click', handleClick);
   };
 }

@@ -132,3 +132,18 @@ export async function updatePunchCard(id, updates) {
   });
   return res.json();
 }
+
+// --- Notification Settings ---
+export async function getNotificationSettings() {
+  const res = await fetch(`${BASE}/notification-settings`);
+  return res.json();
+}
+
+export async function saveNotificationSettings(settings) {
+  const res = await fetch(`${BASE}/notification-settings`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  });
+  return res.json();
+}
